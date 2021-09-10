@@ -11,7 +11,7 @@ import {
   iteratorFrom,
   wrapAsyncIterator,
   wrapIterator,
-} from "https://deno.land/x/deno-iterator-helpers@v0.1.0/mod.ts";
+} from "https://deno.land/x/iterator_helpers@v0.1.0/mod.ts";
 
 function* naturals() {
   let i = 0;
