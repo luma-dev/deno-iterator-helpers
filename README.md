@@ -9,10 +9,10 @@ https://github.com/tc39/proposal-iterator-helpers.
 
 ```ts
 import {
-  asyncIteratorFrom,
-  iteratorFrom,
-  wrapAsyncIterator,
-  wrapIterator,
+  asyncIteratorFrom as fromA,
+  iteratorFrom as from,
+  wrapAsyncIterator as wrapA,
+  wrapIterator as wrap,
 } from "https://deno.land/x/iterator_helpers/mod.ts";
 
 function* naturals() {
@@ -23,7 +23,7 @@ function* naturals() {
   }
 }
 
-const arr1 = wrapIterator(naturals())
+const arr1 = wrap(naturals())
   .filter((n) => n % 2 === 1) // filter odd numbers
   .map((n) => n ** 2) // square numbers
   .flatMap((n) => [n, n]) // twice each numbers
@@ -31,12 +31,12 @@ const arr1 = wrapIterator(naturals())
   .toArray(); // evaluate and collect items into array
 console.log(arr1); // [1, 1, 9, 9, 25, 25, 49, 49, 81, 81]
 
-const arr2 = await wrapAsyncIterator(asyncIteratorFrom(naturals()))
+const arr2 = await wrapA(fromA(naturals()))
   .filter(async (n) => {
     const res = await fetch(`https://api.isevenapi.xyz/api/iseven/${n}/`);
     if (!res.body) throw new Error("No body");
     const raw = Uint8Array.from(
-      await wrapAsyncIterator(asyncIteratorFrom(res.body))
+      await wrapA(fromA(res.body))
         .flatMap((e) => e)
         .toArray(),
     );
