@@ -52,3 +52,6 @@ jobs:
         with:
           deno-version: ${{ matrix.deno }}
       - run: make coverage/lcov
+      - uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage/
