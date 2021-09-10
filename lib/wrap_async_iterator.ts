@@ -15,7 +15,13 @@ export type WrappedAsyncIterator<T> = {
   drop: (limit: number) => WrappedAsyncIterator<T>;
   asIndexedPairs: () => WrappedAsyncIterator<[number, T]>;
   flatMap: <U>(
-    mapperFn: (t: T) => U | U[] | Promise<U | U[]>,
+    mapperFn: (
+      t: T,
+    ) =>
+      | U
+      | Iterable<U>
+      | AsyncIterable<U>
+      | Promise<U | Iterable<U> | AsyncIterable<U>>,
   ) => WrappedAsyncIterator<U>;
   reduce: {
     <U>(
@@ -114,11 +120,25 @@ export const wrapAsyncIterator = <T>(
       }
       return wrapAsyncIterator((async function* () {
         for await (const v of { [Symbol.asyncIterator]: () => ite }) {
-          const arr = await mapperFn(v);
-          if (Array.isArray(arr)) {
-            for (const e of arr) yield e;
+          const inner = await mapperFn(v);
+          const getAsync = (inner as any)[Symbol.asyncIterator];
+          if (getAsync != null) {
+            if (typeof getAsync !== "function") {
+              throw new TypeError(`${getAsync} is not a function`);
+            }
+            const iteInner = getAsync.call(inner);
+            for await (const vInner of iteInner) yield vInner;
           } else {
-            yield arr;
+            const getSync = (inner as any)[Symbol.iterator];
+            if (getSync != null) {
+              if (typeof getSync !== "function") {
+                throw new TypeError(`${getSync} is not a function`);
+              }
+              const iteInner = getSync.call(inner);
+              for (const vInner of iteInner) yield vInner;
+            } else {
+              yield inner;
+            }
           }
         }
       })());

@@ -3,6 +3,51 @@
 Strict and wrapper version implementation for
 https://github.com/tc39/proposal-iterator-helpers.
 
+## Usage
+
+```ts
+import {
+  asyncIteratorFrom,
+  iteratorFrom,
+  wrapAsyncIterator,
+  wrapIterator,
+} from "./mod.ts";
+
+function* naturals() {
+  let i = 0;
+  while (true) {
+    yield i;
+    i += 1;
+  }
+}
+
+const arr1 = wrapIterator(naturals())
+  .filter((n) => n % 2 === 1) // filter odd numbers
+  .map((n) => n ** 2) // square numbers
+  .flatMap((n) => [n, n]) // twice each numbers
+  .take(10) // cut up to 10 items
+  .toArray(); // evaluate and collect items into array
+console.log(arr1); // [1, 1, 9, 9, 25, 25, 49, 49, 81, 81]
+
+const arr2 = await wrapAsyncIterator(asyncIteratorFrom(naturals()))
+  .filter(async (n) => {
+    const res = await fetch(`https://api.isevenapi.xyz/api/iseven/${n}/`);
+    if (!res.body) throw new Error("No body");
+    const raw = Uint8Array.from(
+      await wrapAsyncIterator(asyncIteratorFrom(res.body))
+        .flatMap((e) => e)
+        .toArray(),
+    );
+    const obj = JSON.parse(new TextDecoder().decode(raw));
+    return obj.iseven;
+  }) // filter even numbers
+  .map((n) => n ** 2) // square numbers
+  .flatMap((n) => [n, n]) // twice each numbers
+  .take(10) // cut up to 10 items
+  .toArray(); // evaluate and collect items into array
+console.log(arr2); // [0, 0, 4, 4, 16, 16, 36, 36, 64, 64]
+```
+
 ## Goals
 
 - Implement all proposed features with wrapper API.

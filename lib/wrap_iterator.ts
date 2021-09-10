@@ -15,7 +15,7 @@ export type WrappedIterator<T> = {
   drop: (limit: number) => WrappedIterator<T>;
   asIndexedPairs: () => WrappedIterator<[number, T]>;
   flatMap: <U>(
-    mapperFn: (t: T) => U | U[],
+    mapperFn: (t: T) => U | Iterable<U>,
   ) => WrappedIterator<U>;
   reduce: {
     <U>(
@@ -112,11 +112,16 @@ export const wrapIterator = <T>(ite: Iterator<T>): WrappedIterator<T> => {
       }
       return wrapIterator((function* () {
         for (const v of { [Symbol.iterator]: () => ite }) {
-          const arr = mapperFn(v);
-          if (Array.isArray(arr)) {
-            for (const e of arr) yield e;
+          const inner = mapperFn(v);
+          const getSync = (inner as any)[Symbol.iterator];
+          if (getSync != null) {
+            if (typeof getSync !== "function") {
+              throw new TypeError(`${getSync} is not a function`);
+            }
+            const iteInner = getSync.call(inner);
+            for (const vInner of iteInner) yield vInner;
           } else {
-            yield arr;
+            yield inner;
           }
         }
       })());

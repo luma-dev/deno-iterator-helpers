@@ -213,10 +213,17 @@ Deno.test({
   name: "AsyncIterator.prototype.flatMap",
   async fn() {
     asserts.assertEquals(
-      await wrapAsyncIterator(asyncIteratorFrom([1, 2, [3, 4], [5, [6, 7], 8]]))
+      await wrapAsyncIterator(asyncIteratorFrom([
+        1,
+        2,
+        [3, 4],
+        [5, [6, 7], 8],
+        // any (async)iterable should be accepted
+        Uint8Array.from([9, 10, 11]),
+      ]))
         .flatMap<number | number[]>((e) => typeof e === "number" ? e * 100 : e)
         .toArray(),
-      [100, 200, 3, 4, 5, [6, 7], 8],
+      [100, 200, 3, 4, 5, [6, 7], 8, 9, 10, 11],
     );
     asserts.assertThrows(
       () => wrapAsyncIterator(asyncIteratorFrom([1, 2, 3])).flatMap(1 as any),
