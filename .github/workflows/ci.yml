@@ -26,7 +26,7 @@ jobs:
           deno-version: ${{ matrix.deno }}
       - run: deno lint
       - run: deno fmt --check
-      - run: deno test --no-run ./test.ts
+      - run: deno test --no-run
   test:
     needs: [check]
     runs-on: ${{ matrix.os }}
