@@ -1,5 +1,7 @@
 # deno-iterator-helpers
 
+[![Codecov](https://img.shields.io/codecov/c/github/luma-dev/deno-iterator-helpers?style=flat-square)](https://app.codecov.io/gh/luma-dev/deno-iterator-helpers)
+
 Strict and wrapper version implementation for
 https://github.com/tc39/proposal-iterator-helpers.
 
