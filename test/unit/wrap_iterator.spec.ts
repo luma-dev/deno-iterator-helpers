@@ -36,7 +36,7 @@ Deno.test({
 Deno.test({
   name: "Iterator.prototype.filter",
   fn() {
-    const prime10: Iterator<2 | 3 | 5 | 7> = wrapIterator(naturals())
+    const prime10: Iterator<Prime10> = wrapIterator(naturals())
       .filter(isPrime10)
       .unwrap();
     asserts.assertEquals(
