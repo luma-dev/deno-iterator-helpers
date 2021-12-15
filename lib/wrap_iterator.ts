@@ -30,7 +30,14 @@ export type WrappedIterator<T> = {
   forEach: (fn: (t: T) => void) => void;
   some: (fn: (t: T) => boolean) => boolean;
   every: (fn: (t: T) => boolean) => boolean;
-  find: (fn: (t: T) => boolean) => T | undefined;
+  find: {
+    <U extends T>(
+      filtererFn: (t: T) => t is U,
+    ): U | undefined;
+    (
+      filtererFn: (t: T) => boolean,
+    ): T | undefined;
+  };
 };
 
 export const wrapIterator = <T>(ite: Iterator<T>): WrappedIterator<T> => {
@@ -169,7 +176,7 @@ export const wrapIterator = <T>(ite: Iterator<T>): WrappedIterator<T> => {
       }
       return true;
     },
-    find: (fn) => {
+    find: (fn: any) => {
       if (typeof fn !== "function") {
         throw new TypeError(`${fn} is not a function`);
       }
