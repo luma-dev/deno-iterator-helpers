@@ -4,16 +4,21 @@ import { asserts } from "../../deps.ts";
 import { iteratorFrom } from "../../lib/iterator_from.ts";
 import { wrapIterator } from "../../lib/wrap_iterator.ts";
 
+const naturals = function* naturals() {
+  let i = 0;
+  while (true) {
+    yield i;
+    i += 1;
+  }
+};
+
+type Prime10 = 2 | 3 | 5 | 7;
+const isPrime10 = (n: number): n is Prime10 =>
+  n === 2 || n === 3 || n === 5 || n === 7;
+
 Deno.test({
   name: "Iterator.prototype.map",
   fn() {
-    const naturals = function* naturals() {
-      let i = 0;
-      while (true) {
-        yield i;
-        i += 1;
-      }
-    };
     const naturalsStr: Iterator<string> = wrapIterator(naturals())
       .map((e) => e.toString())
       .unwrap();
@@ -31,15 +36,6 @@ Deno.test({
 Deno.test({
   name: "Iterator.prototype.filter",
   fn() {
-    const naturals = function* naturals() {
-      let i = 0;
-      while (true) {
-        yield i;
-        i += 1;
-      }
-    };
-    const isPrime10 = (n: number): n is 2 | 3 | 5 | 7 =>
-      n === 2 || n === 3 || n === 5 || n === 7;
     const prime10: Iterator<2 | 3 | 5 | 7> = wrapIterator(naturals())
       .filter(isPrime10)
       .unwrap();
@@ -57,13 +53,6 @@ Deno.test({
 Deno.test({
   name: "Iterator.prototype.take",
   fn() {
-    const naturals = function* naturals() {
-      let i = 0;
-      while (true) {
-        yield i;
-        i += 1;
-      }
-    };
     asserts.assertEquals(
       wrapIterator(naturals()).take(4).toArray(),
       [0, 1, 2, 3],
@@ -115,13 +104,6 @@ Deno.test({
   name: "Iterator.prototype.drop",
   fn() {
     {
-      const naturals = function* naturals() {
-        let i = 0;
-        while (true) {
-          yield i;
-          i += 1;
-        }
-      };
       asserts.assertEquals(
         wrapIterator(naturals()).drop(4).take(4).toArray(),
         [4, 5, 6, 7],
@@ -190,13 +172,6 @@ Deno.test({
 Deno.test({
   name: "Iterator.prototype.asIndexedPairs",
   fn() {
-    const naturals = function* naturals() {
-      let i = 0;
-      while (true) {
-        yield i;
-        i += 1;
-      }
-    };
     asserts.assertEquals(
       wrapIterator(naturals())
         .filter((e) => e % 2 === 1)
@@ -222,6 +197,24 @@ Deno.test({
         .flatMap<number | number[]>((e) => typeof e === "number" ? e * 100 : e)
         .toArray(),
       [100, 200, 3, 4, 5, [6, 7], 8, 9, 10, 11],
+    );
+    asserts.assertEquals(
+      wrapIterator(iteratorFrom([
+        1,
+      ]))
+        .flatMap<number | number[]>(function* (e) {
+          yield e * 10;
+          yield e * 20;
+        })
+        .toArray(),
+      [10, 20],
+    );
+    asserts.assertThrows(
+      () =>
+        wrapIterator(iteratorFrom([0])).flatMap(() => ({
+          [Symbol.iterator]: 0,
+        })).toArray(),
+      TypeError,
     );
     asserts.assertThrows(
       () => wrapIterator(iteratorFrom([1, 2, 3])).flatMap(1 as any),
@@ -385,6 +378,12 @@ Deno.test({
         () => wrapIterator(iteratorFrom([1, 2, 3])).find(1 as any),
         TypeError,
       );
+    }
+    {
+      const got: Prime10 | undefined = wrapIterator(naturals())
+        .take(10)
+        .find(isPrime10);
+      asserts.assertEquals(got, 2);
     }
     {
       asserts.assertEquals(

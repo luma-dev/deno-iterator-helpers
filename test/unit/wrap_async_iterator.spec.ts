@@ -225,6 +225,31 @@ Deno.test({
         .toArray(),
       [100, 200, 3, 4, 5, [6, 7], 8, 9, 10, 11],
     );
+    asserts.assertEquals(
+      await wrapAsyncIterator(asyncIteratorFrom([
+        1,
+      ]))
+        .flatMap<number | number[]>(async function* (e) {
+          yield e * 10;
+          yield e * 20;
+        })
+        .toArray(),
+      [10, 20],
+    );
+    await asserts.assertRejects(
+      async () =>
+        await wrapAsyncIterator(asyncIteratorFrom([0])).flatMap(() => ({
+          [Symbol.asyncIterator]: 0,
+        })).toArray(),
+      TypeError,
+    );
+    await asserts.assertRejects(
+      async () =>
+        await wrapAsyncIterator(asyncIteratorFrom([0])).flatMap(() => ({
+          [Symbol.iterator]: 0,
+        })).toArray(),
+      TypeError,
+    );
     asserts.assertThrows(
       () => wrapAsyncIterator(asyncIteratorFrom([1, 2, 3])).flatMap(1 as any),
       TypeError,
