@@ -36,7 +36,14 @@ export type WrappedAsyncIterator<T> = {
   forEach: (fn: (t: T) => void | Promise<void>) => Promise<void>;
   some: (fn: (t: T) => boolean | Promise<boolean>) => Promise<boolean>;
   every: (fn: (t: T) => boolean | Promise<boolean>) => Promise<boolean>;
-  find: (fn: (t: T) => boolean | Promise<boolean>) => Promise<T | undefined>;
+  find: {
+    <U extends T>(
+      filtererFn: (t: T) => t is U,
+    ): Promise<U | undefined>;
+    (
+      filtererFn: (t: T) => boolean | Promise<boolean>,
+    ): Promise<T | undefined>;
+  };
 };
 
 export const wrapAsyncIterator = <T>(
@@ -186,7 +193,7 @@ export const wrapAsyncIterator = <T>(
       }
       return true;
     },
-    find: async (fn) => {
+    find: async (fn: any) => {
       if (typeof fn !== "function") {
         throw new TypeError(`${fn} is not a function`);
       }
